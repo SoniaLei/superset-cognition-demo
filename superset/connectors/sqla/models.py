@@ -1903,6 +1903,9 @@ class SqlaTable(
     @property
     def data(self) -> ExplorableData:
         data_ = super().data
+        data_["editors"] = [
+            {"id": s.id, "label": s.label, "type": s.type} for s in self.editors
+        ]
         if self.type == "table":
             data_["granularity_sqla"] = self.granularity_sqla
             data_["time_grain_sqla"] = self.time_grain_sqla

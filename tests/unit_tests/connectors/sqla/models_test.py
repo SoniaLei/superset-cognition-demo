@@ -52,6 +52,8 @@ from superset.models.helpers import (
     validate_rendered_expression,
 )
 from superset.sql.parse import Table
+from superset.subjects.models import Subject
+from superset.subjects.types import SubjectType
 from superset.superset_typing import AdhocMetric, QueryObjectDict
 from superset.utils import json
 
@@ -1513,6 +1515,23 @@ def test_sqla_table_data_includes_currency_code_column(mocker: MockerFixture) ->
     data = table.data
     assert data["currency_code_column"] == "currency_code"
     assert data["main_dttm_col"] == "ds"
+
+
+def test_sqla_table_data_includes_editors(mocker: MockerFixture) -> None:
+    """
+    Test that the Explore payload exposes the dataset editors.
+    """
+    database = mocker.MagicMock()
+    table = SqlaTable(table_name="sales", database=database)
+    mocker.patch.object(SqlaTable, "columns", [])
+    mocker.patch.object(SqlaTable, "metrics", [])
+    editor = Subject(id=7, label="editor@example.com", type=SubjectType.USER)
+    table.editors = [editor]
+
+    data = table.data
+    assert data["editors"] == [
+        {"id": 7, "label": "editor@example.com", "type": SubjectType.USER}
+    ]
 
 
 def test_sqla_table_link_escapes_url(mocker: MockerFixture) -> None:
