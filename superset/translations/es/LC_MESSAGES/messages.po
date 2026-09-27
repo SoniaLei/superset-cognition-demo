@@ -1994,7 +1994,7 @@ msgid "An error occurred while creating %ss: %s"
 msgstr "Se ha producido un error al crear %ss: %s"
 
 msgid "An error occurred while creating the copy link."
-msgstr "Se produjo un error en la creación %ss: %s"
+msgstr "Se produjo un error al crear el enlace de copia."
 
 msgid "An error occurred while creating the data source"
 msgstr "Se ha producido un error al crear la fuente de datos"
@@ -17007,9 +17007,7 @@ msgid "There was an error loading users."
 msgstr "Se ha producido un error al cargar las tablas"
 
 msgid "There was an error retrieving dashboard tabs."
-msgstr ""
-"Lo sentimos, hubo un error al obtener la información de la base de datos:"
-" %s"
+msgstr "Hubo un error al obtener las pestañas del dashboard."
 
 #, python-format
 msgid "There was an error saving the favorite status: %s"
