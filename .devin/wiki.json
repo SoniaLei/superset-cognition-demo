@@ -1,0 +1,125 @@
+{
+  "repo_notes": [
+    {
+      "content": "superset-cognition-demo is a fork of Apache Superset (Flask/SQLAlchemy backend, React/TypeScript frontend) used as the target repository of an issue-to-PR pipeline run by Devin. Nothing in the product code is fork-specific; what is fork-specific is how work reaches it: a maintainer labels a GitHub issue `devin-ready`, the issue-pipeline service (github.com/SoniaLei/issue-pipeline) starts a Devin session with an ACU ceiling, the session opens a `devin/issue-<n>` pull request, GitHub checks and Devin Review run on the PR's current head, and a human reviews and merges. No agent merges, deploys or acts on review comments. Describe the repository as Superset first and the pipeline as the way changes arrive, not the other way round.",
+      "author": "maintainer"
+    },
+    {
+      "content": "Authoritative documents, in this order: AGENTS.md (working rules for any agent or engineer: pre-commit before pushing, ongoing refactors to avoid, security model, test utilities, PR conventions), SECURITY.md (the role and capability matrix; the only test for whether a security finding is in scope), CONTRIBUTING.md and docs/ (the Docusaurus site under docs/docs/, the published developer documentation), UPDATING.md (breaking changes). This generated wiki is navigation and context for onboarding, Ask Devin and Devin sessions; when it disagrees with those files, the files state intent and the wiki describes what was generated from the code at one point in time. Do not present wiki text as policy.",
+      "author": "maintainer"
+    },
+    {
+      "content": "Runtime knowledge for working on this checkout lives in .agents/skills/ and is committed like code. .agents/skills/superset-local-runtime-testing/SKILL.md explains how to stand up an isolated local Superset (temporary SUPERSET_CONFIG_PATH, SQLite metadata database, `superset db upgrade` / `fab create-admin` / `init` / `run -p 8088`), the Node 24 / npm 11 frontend prerequisites and `npm run dev-server` on port 9000, and how to verify Explore dataset-editor payloads and permissions with two Alpha users. New skills are added as directories under .agents/skills/ by pull request; the wiki should link to them, not restate them.",
+      "author": "maintainer"
+    },
+    {
+      "content": "Code map for the backend: superset/app.py and superset/initialization/ (Flask app factory and extension wiring), superset/config.py (every setting and feature flag, with docs/static/feature-flags.json generated from it), superset/models/ (SQLAlchemy models: Dashboard, Slice, SqlaTable, Database, Query, ...), superset/connectors/sqla/ (SqlaTable datasource and query building), superset/db_engine_specs/ (one module per database dialect), superset/commands/ (business logic per resource, each command validated then run inside @transaction), superset/daos/ (data access with base_filters for ownership scoping), superset/<resource>/api.py + schemas.py (Flask-AppBuilder REST APIs and Marshmallow schemas, OpenAPI at /swagger/v1), superset/security/ (SupersetSecurityManager, raise_for_access, row-level security), superset/sql/ (SQLGlot-based parsing, RLS and Jinja templating), superset/sqllab/ (SQL Lab execution and result backends), superset/tasks/ and superset/reports/ (Celery async queries, alerts and reports), superset/mcp_service/ (Model Context Protocol service for LLM clients; see its ARCHITECTURE.md), superset/migrations/versions/ (Alembic migrations, helpers in superset/migrations/shared/utils.py), superset/translations/ (Babel catalogs).",
+      "author": "maintainer"
+    },
+    {
+      "content": "Code map for the frontend (superset-frontend/): src/explore/ (chart builder), src/dashboard/ (dashboard layout, filters, native filter bar), src/SqlLab/ (SQL editor), src/components/ (shared components), src/features/ (CRUD list views and modals), src/pages/ (routes), src/hooks/, src/utils/, src/middleware/asyncEvent.ts (async query polling); packages/superset-ui-core (the @superset-ui/core library: chart API, query API, theming, translation, and the Ant Design wrappers that product code must import instead of antd directly), packages/superset-ui-chart-controls (control panel building blocks), plugins/ (one package per chart plugin: legacy-*, plugin-chart-echarts, plugin-chart-table, ...), spec/helpers/testing-library.tsx (render with providers for Jest + React Testing Library), playwright/ (E2E tests replacing Cypress), cypress-base/ (deprecated). Other packages at the repository root: superset-core (the @apache-superset/core extension API), superset-embedded-sdk, superset-extensions-cli (builds .supx bundles), superset-websocket (Node.js server pushing async-query events).",
+      "author": "maintainer"
+    },
+    {
+      "content": "Invariants to state on the relevant pages, because agents and new engineers most often get them wrong: new TypeScript must not use `any`, new frontend files are .ts/.tsx not .js, UI components come from @superset-ui/core/components rather than antd, tests use Jest + React Testing Library with flat `test()` blocks (no Enzyme), new Python needs type hints and passes `pre-commit run mypy`, new source files carry the ASF licence header (JSON, markdown agent files and .rat-excludes entries are exempt), new models prefer UUID primary keys and public APIs expose UUIDs, breaking changes go in UPDATING.md, and pre-commit is run on staged files before every push. Route authorization uses @protect() for REST APIs, @has_access_api and @has_access for legacy views; object-level checks via security_manager.raise_for_access apply to data-bearing resources (dashboards, charts, datasets, queries, databases) and their absence on other resource types is by design.",
+      "author": "maintainer"
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "What this repository is: Apache Superset, forked as the target of a Devin issue-to-PR pipeline. The product in one paragraph (datasets, charts, dashboards, SQL Lab, alerts and reports, embedding), the two runtimes (Flask backend on 8088, webpack dev server on 9000), the supporting packages at the root, and where the canonical documents live (AGENTS.md, SECURITY.md, CONTRIBUTING.md, docs/, UPDATING.md)."
+    },
+    {
+      "title": "Getting started",
+      "purpose": "Onboarding path for a new engineer: read order (this wiki, AGENTS.md, CONTRIBUTING.md, the relevant docs/docs/contributing pages), the isolated local runtime described in .agents/skills/superset-local-runtime-testing/SKILL.md, Docker Compose alternatives (docker-compose.yml, docker-compose-light.yml, docker-compose-non-dev.yml), the health check on /health, how to run backend and frontend tests and pre-commit, and the ongoing refactors to avoid.",
+      "parent": "Overview"
+    },
+    {
+      "title": "How changes arrive: the Devin pipeline",
+      "purpose": "The fork-specific workflow: a maintainer labels an issue `devin-ready`; the external issue-pipeline service starts a Devin session with an ACU ceiling; the session works from this checkout (reading AGENTS.md and .agents/skills/) and opens a `devin/issue-<n>` pull request; GitHub checks and Devin Review run on the PR's current head; a human reviews and merges. Make clear that the pipeline never merges or deploys, that issue text is never an instruction to the pipeline, and that runtime knowledge for sessions is committed under .agents/skills/.",
+      "parent": "Overview"
+    },
+    {
+      "title": "Agent skills and working rules",
+      "purpose": ".agents/skills/ as committed runtime knowledge (one directory per skill with a SKILL.md front matter of name and description), the current superset-local-runtime-testing skill and what it covers, and how AGENTS.md, CLAUDE.md, GEMINI.md, GPT.md and .cursor/rules relate (one set of rules, several entry points). How to add or update a skill by pull request.",
+      "parent": "Overview"
+    },
+    {
+      "title": "Backend architecture",
+      "purpose": "Request path from a Flask-AppBuilder REST API (superset/<resource>/api.py, schemas.py) through commands (superset/commands/, @transaction) and DAOs (superset/daos/, base_filters) to SQLAlchemy models (superset/models/); the app factory and initialization (superset/app.py, superset/initialization/); configuration and feature flags (superset/config.py); Celery workers for async queries, alerts and reports (superset/tasks/, superset/reports/); caches and result backends."
+    },
+    {
+      "title": "Data model and datasets",
+      "purpose": "The dataset-centric design: Database, SqlaTable (physical tables and virtual datasets backed by SQL), TableColumn and SqlMetric, Slice (chart), Dashboard, Query and SavedQuery, Tag, Report schedules; ownership and the shift toward UUID identifiers in public APIs; where migrations live (superset/migrations/versions/) and how to write one with superset.migrations.shared.utils.",
+      "parent": "Backend architecture"
+    },
+    {
+      "title": "Query building and database engine specs",
+      "purpose": "How a chart's query context (superset/common/query_context*.py, query_object.py) becomes SQL through superset/connectors/sqla/ and superset/models/helpers.py; time grains, Jinja templating (superset/jinja_context.py), SQLGlot parsing in superset/sql/; superset/db_engine_specs/ as the per-dialect layer (connection, time expressions, error mapping, cost estimation) and how to add a new engine spec.",
+      "parent": "Backend architecture"
+    },
+    {
+      "title": "Security model and access control",
+      "purpose": "SECURITY.md as the canonical role and capability matrix and its three trust boundaries (Admin as a trusted principal, operator-owned deployment decisions, the codebase enforcing the matrix). Roles (Admin, Alpha, Gamma, sql_lab, Public, embedded guest token), SupersetSecurityManager in superset/security/manager.py, raise_for_access for data-bearing resources, DAO base_filters for ownership, row-level security as query rewriting, guest tokens for embedding. Include the requirement that automated findings name the matrix row and the assumed principal.",
+      "parent": "Backend architecture"
+    },
+    {
+      "title": "SQL Lab and async queries",
+      "purpose": "superset/sqllab/ and superset/views/sql_lab/: query execution modes (synchronous vs Celery), result backends, the async events middleware (superset-frontend/src/middleware/asyncEvent.ts) and the superset-websocket server, saved queries, and the Query model lifecycle.",
+      "parent": "Backend architecture"
+    },
+    {
+      "title": "Alerts, reports and Celery",
+      "purpose": "superset/reports/ and superset/tasks/: report schedules, execution, screenshots (Playwright/Selenium via superset/utils/webdriver.py), notification channels (email, Slack), the Celery beat configuration in superset/config.py and the operational knobs an operator owns.",
+      "parent": "Backend architecture"
+    },
+    {
+      "title": "MCP service",
+      "purpose": "superset/mcp_service/: the Model Context Protocol service exposing Superset tools to LLM clients (FastMCP), its authentication and authorization model, how it reuses commands and DAOs rather than bypassing them, and its own ARCHITECTURE.md and PRODUCTION.md as the detailed references.",
+      "parent": "Backend architecture"
+    },
+    {
+      "title": "Frontend architecture",
+      "purpose": "superset-frontend/src layout (pages, features, components, explore, dashboard, SqlLab, hooks, utils), Redux for global state and hooks for local state, routing, theming with Ant Design tokens through @superset-ui/core, translation, the webpack dev server and its proxy to the backend, and the modernization rules (no `any`, no .js, no direct antd imports, no custom CSS where a token exists)."
+    },
+    {
+      "title": "@superset-ui/core and chart plugins",
+      "purpose": "superset-frontend/packages/superset-ui-core (chart API, query API, theming, translation, component wrappers), superset-ui-chart-controls (control panel schemas and shared controls), plugins/ (one package per chart plugin, ECharts, table, legacy plugins) and how a plugin registers its controls, transformProps and chart component; how to add or modify a chart plugin.",
+      "parent": "Frontend architecture"
+    },
+    {
+      "title": "Explore, dashboards and native filters",
+      "purpose": "src/explore/ (control panel, form data, save/overwrite flows, the dataset editor and its permissions), src/dashboard/ (grid layout, tabs, native filters and cross filters, edit mode) and src/SqlLab/ (editor tabs, result table, save query). The dataset editor is the area exercised by the committed runtime-testing skill.",
+      "parent": "Frontend architecture"
+    },
+    {
+      "title": "Extensions and embedding",
+      "purpose": "superset-core (@apache-superset/core extension API), superset-extensions-cli (.supx bundles), how extensions are loaded, and superset-embedded-sdk with guest tokens for embedding dashboards in other applications.",
+      "parent": "Frontend architecture"
+    },
+    {
+      "title": "Testing",
+      "purpose": "Backend: pytest with tests/unit_tests and tests/integration_tests, SupersetTestCase, @with_config and @with_feature_flags, login_as helpers, fixtures creating dashboards and charts, the test database setup CI uses. Frontend: Jest + React Testing Library with spec/helpers/testing-library.tsx, flat `test()` blocks, Playwright E2E under superset-frontend/playwright (Cypress deprecated). The preference order: unit, integration, then end-to-end."
+    },
+    {
+      "title": "Local development and tooling",
+      "purpose": "Python 3.11+ virtual environment and requirements/ (base.txt, development.txt), Node 24 / npm 11 from .nvmrc, `npm ci` with browser downloads skipped, `npm run dev-server`, docker-compose variants, Makefile targets, pre-commit hooks (ruff, mypy, oxfmt, eslint, feature-flags docs generation) and the rule to run pre-commit on staged files before pushing.",
+      "parent": "Testing"
+    },
+    {
+      "title": "CI and release",
+      "purpose": ".github/workflows/ (Python unit and integration tests, frontend build and tests, Playwright, pre-commit, Docker image builds), what a green PR requires, how the fork's `devin/issue-<n>` PRs are checked by the same workflows plus Devin Review, and the upstream release process in RELEASING/ for context.",
+      "parent": "Testing"
+    },
+    {
+      "title": "Documentation",
+      "purpose": "docs/ as the Docusaurus site (docs/docs/ content, developer portal generated from Storybook stories by docs/scripts/generate-superset-components.mjs, docs/static/feature-flags.json generated from superset/config.py), UPDATING.md for breaking changes, CHANGELOG, and the rule that user-facing changes update docs/ in the same PR."
+    },
+    {
+      "title": "Contributing a change",
+      "purpose": "The end-to-end path for a human or a Devin session: read AGENTS.md, pick or receive an issue, branch, implement within the modernization rules, add unit tests, run pre-commit on staged files, open a PR with the .github/PULL_REQUEST_TEMPLATE.md sections and a Conventional Commits title, respond to GitHub checks and Devin Review on the current head, and wait for a human maintainer to merge.",
+      "parent": "Documentation"
+    }
+  ]
+}

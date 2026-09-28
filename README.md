@@ -50,6 +50,23 @@ under the License.
 
 A modern, enterprise-ready business intelligence web application.
 
+### About this fork
+
+This repository is a fork of Apache Superset used as the target of a Devin
+issue-to-PR pipeline: a maintainer labels an issue `devin-ready`, the
+[issue-pipeline](https://github.com/SoniaLei/issue-pipeline) service starts a
+Devin session, and the resulting `devin/issue-<n>` pull request goes through
+GitHub checks, Devin Review and a human merge. Start with:
+
+- **[DeepWiki](https://deepwiki.com/SoniaLei/superset-cognition-demo)** — generated
+  map of this codebase for onboarding and for agents, steered by
+  [`.devin/wiki.json`](.devin/wiki.json). Navigation and context only; when it
+  disagrees with the documents below, they win.
+- **[AGENTS.md](AGENTS.md)** and **[SECURITY.md](SECURITY.md)** — working rules and
+  the security model, canonical for engineers and agents alike.
+- **[`.agents/skills/`](.agents/skills/)** — committed runtime knowledge (how to
+  stand up and test a local instance) that Devin sessions read from the checkout.
+
 ### Documentation
 
 - **[User Guide](https://superset.apache.org/user-docs/)** — For analysts and business users. Explore data, build charts, create dashboards, and connect databases.
