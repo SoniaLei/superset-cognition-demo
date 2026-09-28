@@ -227,6 +227,22 @@ def test_non_numeric_value_is_returned_as_is() -> None:
     assert format_number_with_config(",.2f", None, None) == ""
 
 
+@pytest.mark.parametrize("value", [10**400, -(10**400)], ids=["positive", "negative"])
+@pytest.mark.parametrize(
+    "d3_format,currency",
+    [
+        (",.2f", None),
+        (None, None),
+        ("SMART_NUMBER", None),
+        (",.2f", {"symbol": "USD", "symbolPosition": "prefix"}),
+    ],
+)
+def test_oversized_integer_is_returned_as_string(
+    d3_format: str | None, currency: dict[str, Any] | None, value: int
+) -> None:
+    assert format_number_with_config(d3_format, currency, value) == str(value)
+
+
 def test_currency_error_keeps_formatted_number() -> None:
     assert (
         format_number_with_config(
