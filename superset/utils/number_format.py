@@ -598,9 +598,14 @@ def raw_string(value: float) -> str:
     """
     Convert an unformatted number to the frontend-like neutral representation.
 
-    Integral floats lose their Python-only ``.0`` suffix. The result is the
-    safe fallback used by ``CurrencyFormatter.ts`` and invalid format handling.
+    Integral floats lose their Python-only ``.0`` suffix, and integers too long
+    for Python's decimal string conversion limit fall back to six significant
+    digits in exponent notation (``1e+4300``). The result is the safe fallback
+    used by ``CurrencyFormatter.ts`` and invalid format handling.
     """
     if isinstance(value, float) and value.is_integer():
         return str(int(value))
-    return str(value)
+    try:
+        return str(value)
+    except ValueError:
+        return normalize_exponent(trim_trailing_zeros(format(Decimal(value), ".5e")))
