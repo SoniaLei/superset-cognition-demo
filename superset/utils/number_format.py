@@ -187,10 +187,9 @@ def format_number_with_config(
         return value
     if isinstance(value, Decimal):
         value = float(value)
-    if math.isnan(value) or math.isinf(value):
-        return ""
-
     try:
+        if math.isnan(value) or math.isinf(value):
+            return ""
         if currency and currency.get("symbol"):
             # the frontend strips the currency symbol from the d3 format and
             # falls back to SMART_NUMBER when no explicit format is set
