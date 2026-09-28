@@ -243,6 +243,21 @@ def test_oversized_integer_is_returned_as_string(
     assert format_number_with_config(d3_format, currency, value) == str(value)
 
 
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (10**4300, "1e+4300"),
+        (-(10**4300), "-1e+4300"),
+        (123456789 * 10**4300, "1.23457e+4308"),
+    ],
+    ids=["positive", "negative", "rounded"],
+)
+def test_integer_beyond_str_conversion_limit_uses_exponent_notation(
+    value: int, expected: str
+) -> None:
+    assert format_number_with_config(",.2f", None, value) == expected
+
+
 def test_currency_error_keeps_formatted_number() -> None:
     assert (
         format_number_with_config(
