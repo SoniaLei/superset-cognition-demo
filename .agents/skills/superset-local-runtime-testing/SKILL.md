@@ -1,5 +1,5 @@
 ---
-name: superset-local-editor-runtime-testing
+name: superset-local-runtime-testing
 description: Set up an isolated Superset runtime and verify Explore dataset editor payloads and permissions.
 ---
 
