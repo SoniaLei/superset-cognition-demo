@@ -93,6 +93,13 @@ jobs:
         if: steps.check.outputs.python == 'true' || steps.check.outputs.frontend == 'true'
         run: python scripts/translations/check_pot_drift.py
 
+      # Fuzzy entries are compiled with --use-fuzzy, so a translation whose
+      # printf placeholders differ from its source raises KeyError at runtime
+      # or renders a literal %s. msgfmt -c does not catch these.
+      - name: Check translation placeholders match their source
+        if: steps.check.outputs.python == 'true' || steps.check.outputs.frontend == 'true'
+        run: python scripts/translations/check_placeholders.py
+
       - name: Install gettext tools
         if: steps.check.outputs.python == 'true' || steps.check.outputs.frontend == 'true'
         uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
