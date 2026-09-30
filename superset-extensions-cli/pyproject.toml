@@ -42,8 +42,8 @@ classifiers = [
     "Topic :: System :: Software Distribution",
 ]
 dependencies = [
-    # no bounds for apache-superset-core until we have a stable version
-    "apache-superset-core",
+    # keep the lower bound in step with the superset-core version this CLI targets
+    "apache-superset-core>=0.1.1",
     "click>=8.0.3",
     "jinja2>=3.1.6",
     "semver>=3.0.4",
