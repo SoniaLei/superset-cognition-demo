@@ -31,11 +31,13 @@ INCOMPATIBLE_CORE_VERSION = "0.1.0"
 
 
 def _read_pyproject(path: Path) -> dict[str, Any]:
+    """Load a pyproject.toml file."""
     with open(path, "rb") as f:
         return tomllib.load(f)
 
 
 def _core_requirement() -> Requirement:
+    """Return the CLI's declared apache-superset-core requirement."""
     pyproject = _read_pyproject(REPO_ROOT / "superset-extensions-cli/pyproject.toml")
     for dependency in pyproject["project"]["dependencies"]:
         requirement = Requirement(dependency)
@@ -45,10 +47,12 @@ def _core_requirement() -> Requirement:
 
 
 def test_core_requirement_excludes_incompatible_release() -> None:
+    """The CLI must not resolve a core whose Manifest still requires `id`."""
     assert not _core_requirement().specifier.contains(INCOMPATIBLE_CORE_VERSION)
 
 
 def test_core_requirement_accepts_in_repo_core() -> None:
+    """The CLI must be installable alongside the in-repo superset-core."""
     core_version = _read_pyproject(REPO_ROOT / "superset-core/pyproject.toml")[
         "project"
     ]["version"]
