@@ -25,8 +25,6 @@ export default defineConfig({
   chromeWebSecurity: false,
   defaultCommandTimeout: 8000,
   numTestsKeptInMemory: 3,
-  // Disabled after realizing this MESSES UP rison encoding in intricate ways
-  experimentalFetchPolyfill: false,
   experimentalMemoryManagement: true,
   requestTimeout: 10000,
   video: false,
@@ -77,6 +75,7 @@ export default defineConfig({
       return config;
     },
     baseUrl: 'http://localhost:8088',
+    testIsolation: false,
     excludeSpecPattern: ['**/_skip.*'],
     experimentalRunAllSpecs: true,
     specPattern: ['cypress/e2e/**/*.{js,jsx,ts,tsx}'],
