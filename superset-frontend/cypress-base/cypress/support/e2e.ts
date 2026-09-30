@@ -83,7 +83,6 @@ before(() => {
     return;
   }
   cy.login();
-  Cypress.Cookies.defaults({ preserve: 'session' });
   cy.loadChartFixtures();
   cy.loadDashboardFixtures();
 });
