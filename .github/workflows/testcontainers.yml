@@ -63,7 +63,10 @@ jobs:
           # upstream as notably slow (a real instance bring-up, not just a
           # process start) and untested locally here (no arm64 image), so
           # it gets a wider timeout margin than the rest until real CI data
-          # says otherwise.
+          # says otherwise. Databend's margin covers its fixture retrying a
+          # container whose entrypoint loses an internal startup race (see
+          # tests/testcontainers/db_engine_specs/test_databend.py), each
+          # lost attempt costing a full readiness timeout.
           FULL_MATRIX: |
             [
               {"dialect": "cockroachdb", "timeout": 10},
@@ -82,7 +85,7 @@ jobs:
               {"dialect": "mysql", "timeout": 10},
               {"dialect": "clickhouse", "timeout": 10},
               {"dialect": "starrocks", "timeout": 15},
-              {"dialect": "databend", "timeout": 10},
+              {"dialect": "databend", "timeout": 20},
               {"dialect": "risingwave", "timeout": 10},
               {"dialect": "firebird", "timeout": 10},
               {"dialect": "ydb", "timeout": 10},

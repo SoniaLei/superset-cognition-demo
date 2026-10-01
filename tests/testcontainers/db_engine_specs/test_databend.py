@@ -25,6 +25,7 @@ image. Superset's DatabendEngineSpec defaults to `sslmode=require`
 listener, so this connects with `sslmode=disable` explicitly.
 """
 
+import logging
 from collections.abc import Iterator
 
 import pytest
@@ -56,25 +57,63 @@ from ._pagination import (  # noqa: E402
     assert_paginated_query_returns_correct_rows_in_order,
 )
 
+logger = logging.getLogger(__name__)
+
 HTTP_PORT = 8000
 DBNAME = "default"
+READY_LOG = f"listened at 0.0.0.0:{HTTP_PORT}"
+# The image's entrypoint (docker/bootstrap.sh) starts databend-meta and
+# databend-query concurrently and gates query's single connection attempt to
+# metasrv's gRPC port behind a bare `sleep 1`. On a loaded runner, metasrv's
+# on-disk data upgrade plus leader election can overrun that second, so
+# databend-query gets "Connection refused" and exits for good with no retry
+# -- while the container stays `running`, because metasrv is still alive and
+# the entrypoint waits on both processes. The readiness line then never
+# comes, and the only recovery is a fresh container.
+STARTUP_ATTEMPTS = 3
+
+
+def _start_ready_container() -> DockerContainer:
+    """
+    Start a Databend container, retrying a container whose query process
+    lost that startup race.
+    """
+    for attempt in range(1, STARTUP_ATTEMPTS + 1):
+        container = DockerContainer("datafuselabs/databend")
+        container.with_exposed_ports(HTTP_PORT)
+        # The image's own startup banner documents this exact line as proof
+        # its HTTP query endpoint is bound and ready.
+        container.waiting_for(LogMessageWaitStrategy(READY_LOG))
+        try:
+            return container.start()
+        except TimeoutError:
+            try:
+                container.stop()
+            except Exception:  # noqa: BLE001 -- teardown of an unusable container
+                logger.exception("failed to stop unready Databend container")
+            if attempt == STARTUP_ATTEMPTS:
+                raise
+            logger.warning(
+                "Databend container never logged %r; retrying (attempt %d/%d)",
+                READY_LOG,
+                attempt + 1,
+                STARTUP_ATTEMPTS,
+            )
+    raise AssertionError("unreachable")
 
 
 @pytest.fixture(scope="module")
 def engine() -> Iterator[Engine]:
-    container = DockerContainer("datafuselabs/databend")
-    container.with_exposed_ports(HTTP_PORT)
-    # The image's own startup banner documents this exact line as proof its
-    # HTTP query endpoint is bound and ready.
-    container.waiting_for(LogMessageWaitStrategy(f"listened at 0.0.0.0:{HTTP_PORT}"))
-
-    with container:
+    container = _start_ready_container()
+    try:
         host = container.get_container_host_ip()
         port = container.get_exposed_port(HTTP_PORT)
         # "root" with no password is the image's builtin user -- confirmed
         # directly against a running container, not from the image's own
         # doc text, which only shows ${USER}/${PASSWORD} placeholders.
         yield create_engine(f"databend://root:@{host}:{port}/{DBNAME}?sslmode=disable")
+    finally:
+        container.stop()
 
 
 def test_paginated_query_returns_correct_rows_in_order(engine: Engine) -> None:
