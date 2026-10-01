@@ -1913,6 +1913,9 @@ class SqlaTable(
             data_["is_sqllab_view"] = self.is_sqllab_view
             data_["health_check_message"] = self.health_check_message
             data_["extra"] = self.extra
+            data_["editors"] = [
+                {"id": s.id, "label": s.label, "type": s.type} for s in self.editors
+            ]
             data_["always_filter_main_dttm"] = self.always_filter_main_dttm
             data_["normalize_columns"] = self.normalize_columns
         return data_

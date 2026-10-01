@@ -52,6 +52,8 @@ from superset.models.helpers import (
     validate_rendered_expression,
 )
 from superset.sql.parse import Table
+from superset.subjects.models import Subject
+from superset.subjects.types import SubjectType
 from superset.superset_typing import AdhocMetric, QueryObjectDict
 from superset.utils import json
 
@@ -1513,6 +1515,31 @@ def test_sqla_table_data_includes_currency_code_column(mocker: MockerFixture) ->
     data = table.data
     assert data["currency_code_column"] == "currency_code"
     assert data["main_dttm_col"] == "ds"
+
+
+def test_sqla_table_data_includes_editors(mocker: MockerFixture) -> None:
+    """
+    Test that the Explore datasource payload exposes the dataset editors.
+
+    The frontend gates "Edit dataset" on ``datasource.editors`` and the
+    datasource modal sends ``datasource.editors`` back on save, so the field
+    must be present with the same shape as ``GET /api/v1/dataset/<id>``.
+    """
+    database = mocker.MagicMock()
+    table = SqlaTable(table_name="sales", database=database)
+    table.editors = [
+        Subject(id=7, label="Jane Doe", type=SubjectType.USER),
+        Subject(id=9, label="Analysts", type=SubjectType.ROLE),
+    ]
+    mocker.patch.object(SqlaTable, "columns", [])
+    mocker.patch.object(SqlaTable, "metrics", [])
+
+    data = table.data
+
+    assert data["editors"] == [
+        {"id": 7, "label": "Jane Doe", "type": SubjectType.USER},
+        {"id": 9, "label": "Analysts", "type": SubjectType.ROLE},
+    ]
 
 
 def test_sqla_table_link_escapes_url(mocker: MockerFixture) -> None:
