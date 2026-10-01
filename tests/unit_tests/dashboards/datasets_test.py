@@ -327,6 +327,7 @@ def test_dashboard_table_serialization_includes_capabilities_and_parent() -> Non
         "template_params",
         "is_sqllab_view",
         "health_check_message",
+        "editors",
         "always_filter_main_dttm",
         "normalize_columns",
         "column_types",
